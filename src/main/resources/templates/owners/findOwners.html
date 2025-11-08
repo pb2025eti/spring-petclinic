@@ -29,7 +29,13 @@
     <a class="btn btn-primary" th:href="@{/owners/new}" th:text="#{addOwner}">Add Owner</a>
 
   </form>
+  <form th:action="@{/owners/hold}" method="post" style="display:inline">
+    <button type="submit" class="btn btn-primary">Hold Lock - press first</button>
+  </form>
 
+  <form th:action="@{/owners/wait}" method="post" style="display:inline">
+    <button type="submit" class="btn btn-secondary">Wait for Lock - press second</button>
+  </form>
 </body>
 
 </html>

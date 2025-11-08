@@ -23,6 +23,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
@@ -39,6 +40,8 @@ import org.jspecify.annotations.Nullable;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.sql.DataSource;
+
 /**
  * @author Juergen Hoeller
  * @author Ken Krebs
@@ -53,8 +56,11 @@ class OwnerController {
 
 	private final OwnerRepository owners;
 
-	public OwnerController(OwnerRepository owners) {
+	private final DataSource dataSource;
+
+	public OwnerController(OwnerRepository owners, DataSource dataSource) {
 		this.owners = owners;
+		this.dataSource = dataSource;
 	}
 
 	@InitBinder
@@ -172,6 +178,29 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	@PostMapping("/owners/hold")
+	@Transactional
+	public String holdLock() throws InterruptedException {
+		int updated = owners.updateLastNameForLock(1L);
+		if (updated == 0) {
+			return "No owner with id=1 found";
+		}
+
+		Thread.sleep(60_000);
+
+		return "Lock held for 60 seconds";
+	}
+
+	@PostMapping("/owners/wait")
+	@Transactional
+	public String waitForLock() {
+		int updated = owners.updateLastNameForLock(1L);
+		if (updated == 0) {
+			return "No owner with id=1 found";
+		}
+		return "Update successful (lock acquired)";
 	}
 
 }
